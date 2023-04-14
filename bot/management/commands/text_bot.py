@@ -18,37 +18,42 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         bot = TeleBot(TOKEN)
 
+
         def decor(func):
+            ids = []
             def wraper(*args, **kwargs):
-                func(*args, **kwargs)
-                bot.send_message(SELF_CHAT_ID, 'text')
-                return True
+                file_id = func(*args, **kwargs)
+                ids.append(file_id)
             return wraper
+
 
         # @bot.edited_channel_post_handler(content_types=['text', 'photo'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
         # def edit(message):
         #     print(message)
             # bot.send_message(SELF_CHAT_ID, message)
 
-        # @bot.channel_post_handler(content_types=['photo'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
-        # def upload_post(message):
-        #     if message.photo:
-        #         file_id = message.photo[-1].file_id
-        #         post, flag = Post.objects.get_or_create(post=message.id)
-        #         if post.images is None:
-        #             post.images = file_id
-        #             post.save()
-        #         else:
-        #             post.images = post.images + f",{file_id}"
-        #             post.save()
-            #     bot.send_message(SELF_CHAT_ID, message)
-            #     print(message)
-
         @bot.channel_post_handler(content_types=['photo'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
-        def new_photo_post(message):
+        @decor
+        def upload_post(message):
             if message.photo:
                 file_id = message.photo[-1].file_id
-                bot.send_photo(CHANEL_TO, photo=file_id, caption=message.caption)
+                # print(file_id)
+                # post, flag = Post.objects.get_or_create(post=message.id)
+                # if post.images is None:
+                #     post.images = file_id
+                #     post.save()
+                # else:
+                #     post.images = post.images + f",{file_id}"
+                #     post.save()
+                # bot.send_message(SELF_CHAT_ID, message)
+                return file_id
+
+        #
+        # @bot.channel_post_handler(content_types=['photo'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
+        # def new_photo_post(message):
+        #     if message.photo:
+        #         file_id = message.photo[-1].file_id
+        #         bot.send_photo(CHANEL_TO, photo=file_id, caption=message.caption)
 
         # @bot.channel_post_handler(content_types=['text'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
         # def new_text_post(message):
@@ -67,31 +72,33 @@ class Command(BaseCommand):
         #     bot.edit_message_text(chat_id=CHANEL_TO, message_id=post.chanel_to_id, text=post.text)
 
 
-        @bot.message_handler(content_types=['document'])
-        def docs(message):
-            bot.send_message(SELF_CHAT_ID, message)
-            print(message.document)
-
-        @bot.channel_post_handler(content_types=['text'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
-        def new_text_post(message):
-            post, created = Post.objects.get_or_create(post_id=message.id)
-            post.text = message.text
-            post.save()
-
-            chanel_post = Chanel.objects.create(post_id=post.id, origin_post_id=post.post_id)
-            info = bot.send_message(CHANEL_TO, message.text)
-            chanel_post.self_post_id = info.id
-            chanel_post.save()
-
-        @bot.edited_channel_post_handler(content_types=['text'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
-        def edit_text_post(message):
-            post = Post.objects.get(post_id=message.id)
-            post.text = message.text
-            post.save()
-
-            chanel_post = Chanel.objects.get(post_id=post.id)
-
-            bot.edit_message_text(chat_id=CHANEL_TO, message_id=chanel_post.self_post_id, text=post.text)
+        # @bot.message_handler(content_types=['document'])
+        # def docs(message):
+        #     bot.send_message(SELF_CHAT_ID, message)
+        #     print(message.document)
+        #
+        # @bot.channel_post_handler(content_types=['text'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
+        # def new_text_post(message):
+        #     post, created = OriginPost.objects.get_or_create(post_id=message.id)
+        #     post.text = message.text
+        #     post.save()
+        #
+        #
+        #     info = bot.send_message(CHANEL_TO, message.text)
+        #     chanel_post = ChanelPost.objects.create(self_post_id=info.id, origin_post_id=post)
+        #     chanel_post.self_post_id = info.id
+        #     chanel_post.save()
+        #
+        # @bot.edited_channel_post_handler(content_types=['text'], func=lambda message: message.chat.id == int(SOURSE_CHANEL_ID))
+        # def edit_text_post(message):
+        #     print('delete')
+            # post = Post.objects.get(post_id=message.id)
+            # post.text = message.text
+            # post.save()
+            #
+            # chanel_post = Chanel.objects.get(post_id=post.id)
+            #
+            # bot.edit_message_text(chat_id=CHANEL_TO, message_id=chanel_post.self_post_id, text=post.text)
 
 
 
